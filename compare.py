@@ -7,9 +7,12 @@
 
 # Конечный балл (score) выставляется по формуле:
 # 1 - Расстояние/max(Длина первой последовательности, Длина второй последовательности)
+# Конечно же вид формулы можно и усложнить, чтобы более баллы точно описывали присутстсвие копирования.
+# При данном виде формулы, работы со score > 0.6 я бы подозревал в списывании.
 
 import ast
 import argparse
+
 parser = argparse.ArgumentParser()
 parser.add_argument('input_file', type=str)
 parser.add_argument('output_file', type=str)
@@ -79,9 +82,10 @@ def main():
         for line in input_file.read().splitlines():
 
             in_dir1, in_dir2 = line.split(' ')
+
             with open(in_dir1, 'r', encoding='utf-8') as source1, \
                     open(in_dir2, 'r', encoding='utf-8') as source2:
-
+                # собираем данные с двух файлов
                 tree1, tree2 = ast.parse(source1.read()), ast.parse(source2.read())
 
                 analyzer = Analyzer()
@@ -93,12 +97,11 @@ def main():
 
                 analyzer.visit(tree2)
                 statements2_ = analyzer.report()
-
+                # вычисляем расстояние и конечный балл
                 lev_score = damerau_levenshtein_distance(statements1_, statements2_)
 
                 max_len = max([len(statements1_), len(statements2_)])
-                mean_len = (len(statements1_) + len(statements2_))/2
-                final_score = 1 - lev_score/max(lev_score, mean_len)
+                final_score = 1 - lev_score/max_len
 
                 output_file.write(f'{round(final_score, 2)}\n')
 
